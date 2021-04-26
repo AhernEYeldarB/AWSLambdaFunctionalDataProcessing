@@ -1,0 +1,14 @@
+{
+  "name": "csfyp-aws",
+  "version": "1.0.0",
+  "description": "[Instructions](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/setup-toolkit.html)\r Follow the install instructions found [Here; Instructions](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/setup-toolkit.html)",
+  "main": "uploadToDynamoDB.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.892.0"
+  }
+}
