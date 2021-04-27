@@ -20,35 +20,57 @@ namespace AWSPipe
 
     public class Function
     {
-
-        private static readonly HttpClient client = new HttpClient();
         private static readonly RegionEndpoint bucketRegion = RegionEndpoint.EUWest1;
         private static IAmazonS3 S3Client = new AmazonS3Client(bucketRegion);
 
         public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest apigProxyEvent, ILambdaContext context)
         {
-
+            int rowsProcessed = 0;
             Func<Row, object> mapFunction = value =>
             {
                 var obj = new
                 {
+                    _id = value._id,
+                    index = value.index,
+                    guid = value.guid,
+                    isActive = value.isActive,
+                    balance = value.balance,
+                    picture = value.picture,
+                    age = value.age,
+                    eyeColor = value.eyeColor,
                     name = value.name,
-                    age = value.age + 10,
-                    eyeColor = value.eyeColor
+                    gender = value.gender,
+                    company = value.company,
+                    email = value.email,
+                    phone = value.phone,
+                    address = value.address,
+                    about = value.about,
+                    registered = value.registered,
+                    latitude = value.latitude,
+                    longitude = value.longitude,
+                    tags = value.tags,
+                    friends = value.friends,
+                    greeting = value.greeting,
+                    favoriteFruit = value.favoriteFruit
                 };
                 return obj;
             };
 
-            Func<dynamic, bool> filterPredicate = value =>
+            Func<dynamic, bool> filterPredicate1 = value =>
             {
                 return value.eyeColor == "green";
+            };
+            Func<dynamic, bool> filterPredicate2 = value =>
+            {
+                return value.age > 15;
             };
 
             Func<IEnumerable, IEnumerable> pipeline = Activities.pipelineMaker(
                 Activities.mapMaker<Row, dynamic>(mapFunction),
-                Activities.eachMaker(),
-                Activities.filterMaker(filterPredicate)
+                Activities.filterMaker(filterPredicate1),
+                Activities.filterMaker(filterPredicate2)
             );
+
 
             // IEnumerable<Row> humans;
             try
@@ -56,7 +78,7 @@ namespace AWSPipe
                 GetObjectRequest request = new GetObjectRequest
                 {
                     BucketName = "fyp-test-aws",
-                    Key = "random-personal-info1.json"
+                    Key = "random-personal-info5.json"
                 };
                 using (GetObjectResponse response = await S3Client.GetObjectAsync(request))
                 using (Stream inStream = response.ResponseStream)
@@ -70,7 +92,11 @@ namespace AWSPipe
                     IEnumerable<Row> iterator = r.SelectTokensWithRegex<Row>(new Regex(@"^\[\d+\]$"));
                     foreach (var x in pipeline(iterator))
                     {
-                        Console.WriteLine(x.ToString());
+                        rowsProcessed++;
+                        if (rowsProcessed % 4 == 1)
+                        {
+                            Console.WriteLine(x.ToString());
+                        }
                     }
                 }
             }
@@ -99,7 +125,7 @@ namespace AWSPipe
 
             var body = new Dictionary<string, string>
             {
-                { "message", "Hello WORLD" },
+                { "Rows Processed", rowsProcessed.ToString() },
             };
 
             return new APIGatewayProxyResponse
